@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { setAuthCookie } from '@/utils/cookies';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -21,8 +20,25 @@ export default function Login() {
     setLoading(true);
     
     try {
-      await login(email, password);
-      setAuthCookie(); // Set authentication cookie
+      // Call the login API route instead of using the context directly
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+      
+      // Update the auth context with the user data
+      login(data.user);
+      
+      // Redirect to home page
       router.push('/');
     } catch (err) {
       setError(err.message);

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { setAuthCookie, removeAuthCookie } from '@/utils/cookies';
+import { setAuthCookie, removeAuthCookie, hasAuthCookie } from '@/utils/cookies';
 
 // Create the authentication context
 const AuthContext = createContext();
@@ -18,59 +18,56 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Check if user is logged in on initial load
+  // Check if user is logged in on initial load and fetch user data if needed
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
-
-  // Sign up function
-  const signup = (email, password, name) => {
-    // In a real app, this would be an API call to create a user
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      name,
-      // In a real app, you would never store the password in local storage
-      // This is just for demonstration purposes
-      password
+    const checkAuth = async () => {
+      try {
+        if (hasAuthCookie()) {
+          // Fetch the current user data from the API
+          const response = await fetch('/api/auth/me');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user) {
+              setUser(data.user);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setAuthCookie(); // Set the auth cookie
-    setUser(newUser);
-    return newUser;
+    checkAuth();
+  }, []);
+
+  // Sign up function - now just updates the context with user data from the API
+  const signup = (userData) => {
+    setUser(userData);
+    return userData;
   };
 
-  // Login function
-  const login = (email, password) => {
-    // In a real app, this would be an API call to validate credentials
-    const storedUser = localStorage.getItem('user');
-    
-    if (!storedUser) {
-      throw new Error('No user found. Please sign up first.');
-    }
-    
-    const user = JSON.parse(storedUser);
-    
-    if (user.email !== email || user.password !== password) {
-      throw new Error('Invalid email or password');
-    }
-    
-    setAuthCookie(); // Set the auth cookie
-    setUser(user);
-    return user;
+  // Login function - now just updates the context with user data from the API
+  const login = (userData) => {
+    setUser(userData);
+    return userData;
   };
 
   // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    removeAuthCookie(); // Remove the auth cookie
-    router.push('/login');
+  const logout = async () => {
+    try {
+      // Call the logout API endpoint
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+      
+      setUser(null);
+      removeAuthCookie();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Value object that will be passed to any consumer components

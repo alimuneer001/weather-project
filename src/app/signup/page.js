@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { setAuthCookie } from '@/utils/cookies';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -33,8 +32,25 @@ export default function Signup() {
     setLoading(true);
     
     try {
-      await signup(email, password, name);
-      setAuthCookie(); // Set authentication cookie
+      // Call the signup API route instead of using the context directly
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+      
+      // Update the auth context with the user data
+      signup(data.user);
+      
+      // Redirect to home page
       router.push('/');
     } catch (err) {
       setError(err.message);
