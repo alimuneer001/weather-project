@@ -16,13 +16,8 @@ if (typeof window === 'undefined') {
     const { Pool: PgPool } = require('pg');
     Pool = PgPool;
     
-    // For now, we'll use mock authentication since the database connection is failing
-    console.log('Using mock authentication instead of PostgreSQL database');
-    
-    // We'll keep this code commented out for future reference
-    /*
     // Direct Supabase PostgreSQL connection string
-    const connectionString = 'postgresql://postgres:password123@db.olvvqitulcwprfcettgb.supabase.co:5432/postgres';
+    const connectionString = 'postgresql://postgres:YOUR-PASSWORD@db.olvvqitulcwprfcettgb.supabase.co:5432/postgres';
     
     // Database connection configuration
     const dbConfig = {
@@ -32,12 +27,16 @@ if (typeof window === 'undefined') {
       }
     };
     
-    // Create a connection pool to the PostgreSQL database
-    pool = new Pool(dbConfig);
-    */
-    
-    // Set dbConnected to false to use mock authentication
-    dbConnected = false;
+    try {
+      // Create a connection pool to the PostgreSQL database
+      pool = new Pool(dbConfig);
+      console.log('PostgreSQL database connection initialized');
+      dbConnected = true;
+    } catch (dbError) {
+      console.error('Failed to connect to PostgreSQL database:', dbError);
+      console.log('Falling back to mock authentication');
+      dbConnected = false;
+    }
   } catch (error) {
     console.error('Error initializing database module:', error);
     dbConnected = false;

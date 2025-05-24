@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import WeatherWidget from './WeatherWidget';
 import { useAuth } from '@/context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,32 +36,45 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md py-2' 
-        : 'bg-transparent py-4'
-    }`}>
+    <motion.nav 
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+      className={`fixed w-full z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md py-2' 
+          : 'bg-transparent py-4'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
+          <motion.div 
+            className="flex-shrink-0 flex items-center"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             <Link href="/" className="flex items-center">
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 BRAND
               </span>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link 
-                key={link.name} 
-                href={link.href}
-                className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+              <motion.div
+                key={link.name}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
               >
-                {link.name}
-              </Link>
+                <Link 
+                  href={link.href}
+                  className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+                >
+                  {link.name}
+                </Link>
+              </motion.div>
             ))}
             
             {/* Weather Widget */}
@@ -73,12 +87,14 @@ const Navbar = () => {
                 <span className="text-gray-700 dark:text-gray-200 font-medium">
                   Hi, {user?.name || 'User'}
                 </span>
-                <button 
+                <motion.button 
                   onClick={logout}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   Logout
-                </button>
+                </motion.button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -87,11 +103,16 @@ const Navbar = () => {
                     Login
                   </span>
                 </Link>
-                <Link href="/signup">
-                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium">
-                    Sign Up
-                  </span>
-                </Link>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link href="/signup">
+                    <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium">
+                      Sign Up
+                    </span>
+                  </Link>
+                </motion.div>
               </div>
             )}
           </div>
@@ -121,43 +142,59 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation Menu */}
-      <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 shadow-lg rounded-b-lg">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              {link.name}
-            </Link>
-          ))}
-          <div className="px-3 py-3">
-            {isAuthenticated ? (
-              <button 
-                onClick={logout}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
-              >
-                Logout
-              </button>
-            ) : (
-              <div className="space-y-2">
-                <Link href="/login">
-                  <span className="block text-center w-full border border-blue-600 text-blue-600 px-5 py-2 rounded-md hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors duration-200 font-medium">
-                    Login
-                  </span>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="md:hidden"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 shadow-lg rounded-b-lg">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  {link.name}
                 </Link>
-                <Link href="/signup">
-                  <span className="block text-center w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium">
-                    Sign Up
-                  </span>
-                </Link>
+              ))}
+              <div className="px-3 py-3">
+                {isAuthenticated ? (
+                  <motion.button 
+                    onClick={logout}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Logout
+                  </motion.button>
+                ) : (
+                  <div className="space-y-2">
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Link href="/login">
+                        <span className="block text-center w-full border border-blue-600 text-blue-600 px-5 py-2 rounded-md hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors duration-200 font-medium">
+                          Login
+                        </span>
+                      </Link>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Link href="/signup">
+                        <span className="block text-center w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition-opacity duration-200 font-medium">
+                          Sign Up
+                        </span>
+                      </Link>
+                    </motion.div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 };
 
